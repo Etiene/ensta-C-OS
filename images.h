@@ -1,6 +1,8 @@
 #define MAXTEXT 100
 #define DEFAULTCOLOR 7 // r + g + b
 #define DEBUG 1
+
+
 #define IMGPATH "images/"
 
 typedef enum{
@@ -13,6 +15,30 @@ typedef enum{
 	image,
 	folder
 } type;
+
+/* Un header targa basique. */
+typedef struct targa_header_ {
+  uint8_t  idlength;
+  uint8_t  colourmaptype;
+  uint8_t  datatypecode;
+  uint8_t useless[9];
+  uint16_t width;
+  uint16_t height;
+  uint8_t desc[2];
+} targa_header;
+
+
+/* Une structure pour decrire les elements d'image utiles au traitement */
+typedef struct image_desc_
+{
+  char *fname;               /* Libellé du fichier image (path)                 */
+  uint16_t width;
+  uint16_t height;
+  uint8_t * pRed;               /* Référence sur le plan mémoire de couleur rouge  */
+  uint8_t * pGreen;              /* Référence sur le plan mémoire de couleur bleue  */
+  uint8_t * pBlue;             /* Référence sur le plan mémoire de couleur verte  */
+} image_desc ;
+
 
 /*
 	Reads the message sent to server and tries to interprete it
@@ -60,3 +86,13 @@ void readParameters(char * msg);
 	@return: number of sum of colors
 */
 int readColor(char * c);
+
+/* A documenter */
+void freeImage(image_desc *pdesc);
+/* A documenter */
+int writeImage(image_desc desc, targa_header head, char* fName);
+/* A documenter */
+int readImage(image_desc *pDesc, targa_header *pHeader, FILE * fDesc);
+/* A documenter */
+int mallocImage(image_desc *pDesc, uint16_t width, uint16_t height);
+
