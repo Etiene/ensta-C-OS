@@ -15,7 +15,7 @@ server.o : server.c  strhelpers.h
 
 gfx.o : gfx.c  gfx.h 
 	gcc -c gfx.c -o gfx.o
-	
+
 images.o : images.c  images.h 
 	gcc -c images.c -o images.o
 
