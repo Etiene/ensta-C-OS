@@ -6,14 +6,19 @@ all : application
 #	gcc main_targa.o -o tp7targa 
 
 application : strhelpers.o server.o client.o images.o
-	gcc strhelpers.o images.o server.o -o enstaserver
+	gcc strhelpers.o images.o gfx.o server.o -o enstaserver
 	gcc strhelpers.o client.o -o enstaclient
 
 server.o : server.c  strhelpers.h 
 	gcc -c server.c -o server.o
 
+
+gfx.o : gfx.c  gfx.h 
+	gcc -c gfx.c -o gfx.o
+	
 images.o : images.c  images.h 
 	gcc -c images.c -o images.o
+
 
 client.o : client.c strhelpers.h 
 	gcc -c client.c -o client.o

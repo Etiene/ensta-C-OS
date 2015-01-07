@@ -2,11 +2,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-
+#include "gfx.h"
 #include "strhelpers.h"
 #include "images.h"
-
-
+	
 int readImage(image_desc *pDesc, targa_header *pHead, FILE * fDesc)
 {
 	int i;
@@ -76,6 +75,61 @@ int writeImage (image_desc iDesc, targa_header head, char * fName)
 }
 
 
+void drawHistogram(int * r, int * g, int * b, int * y){
+	int ysize = 300;
+	int xsize = 300;
+
+	char c;
+
+	// Open a new window for drawing.
+	gfx_open(xsize,ysize,"Example Graphics Program");
+
+	// Set the current drawing color to green.
+	gfx_color(0,200,100);
+
+	// Draw a triangle on the screen.
+	gfx_line(100,100,200,100);
+	gfx_line(200,100,150,150);
+	gfx_line(150,150,100,100);
+
+	while(1) {
+		// Wait for the user to press a character.
+		c = gfx_wait();
+
+		// Quit if it is the letter q.
+		if(c=='q') break;
+	}
+}
+
+void makeHistogram(image_desc * img){
+	int r[256];
+	int g[256];
+	int b[256];
+	int y[256];
+	int i,j;
+	uint8_t * red = (uint8_t *) img->pRed;
+	uint8_t * green = (uint8_t *) img->pGreen;
+	uint8_t * blue = (uint8_t *) img->pBlue;
+
+	//columns
+	for(i = 0; i < img->width; i++){
+		r[i] = 0;
+		g[i] = 0;
+		b[i] = 0;
+		y[i] = 0;
+		//pixels
+		for(j = 0; j < img->height; j++){
+			r[i] += *(red + i*img->width + j);
+			g[i] += *(green + i*img->width + j);
+			b[i] += *(blue + i*img->width + j);
+			y[i] += (*(red + i*img->width + j) + *(green + i*img->width + j) + *(blue + i*img->width + j)) / 3;
+		}
+	}
+
+	drawHistogram(r,g,b,y);
+}
+
+
 /*
 	Reads the message sent to server and tries to interprete it
 	Analyses if it contains commands and calls such commands
@@ -121,6 +175,7 @@ void readParameters(char * msg){
 					printf("File %s is open. \n",name);
 					readImage(img,header,fp);
 					writeImage(*img,*header,"test.tga");
+					makeHistogram(img);
 					fclose(fp);
 					free(header);
 					free(img);
