@@ -2,41 +2,42 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "gfx.h"
+
 #include "strhelpers.h"
 #include "images.h"
 	
-int readImage(image_desc *pDesc, targa_header *pHead, FILE * fDesc)
+int readImage(image_desc *pDesc, targa_header *pHead, char * fName)
 {
-	int i;
-	targa_header head;
-	/* Open fDesc file */
-	// fDesc = fopen(fName,"r");
+  FILE * fDesc;
+  int i;
+  targa_header head;
+  /* Open fDesc file */
+  fDesc = fopen(fName,"r");
 
-	/* Lecture du header */
-	fread(pHead, sizeof(targa_header), 1, fDesc);
-	head = *pHead; // on le met dans une vari. temporarire pour faciliter l'acces aux champs
+  /* Lecture du header */
+  fread(pHead, sizeof(targa_header), 1, fDesc);
+  head = *pHead; // on le met dans une vari. temporarire pour faciliter l'acces aux champs
 
-	printf("[mem_targa] Header : %u %u %u %u %u\n", head.idlength, head.colourmaptype, head.datatypecode, head.width, head.height);
+  // Initialisation de la structure image
+  pDesc->width = head.width;
+  pDesc->height = head.height;
 
-	// Initialisation de la structure image
-	pDesc->width = head.width;
-	pDesc->height = head.height;
-	pDesc->pRed   = malloc(sizeof(uint8_t)*head.width*head.height);
-	pDesc->pGreen = malloc(sizeof(uint8_t)*head.width*head.height);
-	pDesc->pBlue  = malloc(sizeof(uint8_t)*head.width*head.height);
+  pDesc->pRed   = malloc(sizeof(uint8_t)*head.width*head.height);
+  pDesc->pGreen = malloc(sizeof(uint8_t)*head.width*head.height);
+  pDesc->pBlue  = malloc(sizeof(uint8_t)*head.width*head.height);
 
-	// Remplir pixel par pixel les 3 couches de couleurs
-	for (i=0; i<head.width*head.height; i++) {
-		// read 1 int : blue
-		fread(pDesc->pBlue+i, sizeof(uint8_t), 1, fDesc);
-		// read 1 int : green
-		fread(pDesc->pGreen+i, sizeof(uint8_t), 1, fDesc);
-		// read 1 int : red
-		fread(pDesc->pRed+i, sizeof(uint8_t), 1, fDesc);
-	}
-	return 1;
+  // Remplir pixel par pixel les 3 couches de couleurs
+  for (i=0; i<head.width*head.height; i++) {
+  	// read 1 int : blue
+  	fread(pDesc->pBlue+i, sizeof(uint8_t), 1, fDesc);
+  	// read 1 int : green
+  	fread(pDesc->pGreen+i, sizeof(uint8_t), 1, fDesc);
+  	// read 1 int : red
+  	fread(pDesc->pRed+i, sizeof(uint8_t), 1, fDesc);
+  }
 
+  return 1;
+  
 }
 
 int writeImage (image_desc iDesc, targa_header head, char * fName)
@@ -55,8 +56,6 @@ int writeImage (image_desc iDesc, targa_header head, char * fName)
 	/* Ecrire le header dans fDesc*/
 	head.width = iDesc.width;
 	head.height = iDesc.height;
-	printf("[read mem_targa] Header : %u %u %u %u %u \n", 
-		 head.idlength, head.colourmaptype, head.datatypecode, head.width, head.height);
 
 	fwrite (&head, sizeof (targa_header), 1, fDesc);
 
@@ -64,44 +63,67 @@ int writeImage (image_desc iDesc, targa_header head, char * fName)
 	pBlue = iDesc.pBlue;
 	pGreen = iDesc.pGreen;
 	pRed = iDesc.pRed;
+
 	/* On va lire head.width*head.height pixels pour les mettre dans le fichier fDesc */
 	for (i=0; i<head.width*head.height; i++){
 		fwrite(pBlue+i, sizeof(uint8_t), 1, fDesc);
 		fwrite(pGreen+i, sizeof(uint8_t), 1, fDesc);
 		fwrite(pRed+i, sizeof(uint8_t), 1, fDesc);
 	}
+
 	fclose (fDesc);
 	return 1;
 }
 
+void fillColors(int width, int height, uint8_t * red, uint8_t * green, uint8_t * blue, int * points, int color_r, int color_g, int color_b){
+	int i, j;
+	int division_factor;
+	int highest_number = 0;
 
-void drawHistogram(int * r, int * g, int * b, int * y){
-	int ysize = 300;
-	int xsize = 300;
+	//resizing
+	for(i=0;i<256;i++){
+		if(points[i]>=highest_number){
+			highest_number = points[i];
+		}
+	}
 
-	char c;
+	division_factor = highest_number/(height-30);
 
-	// Open a new window for drawing.
-	gfx_open(xsize,ysize,"Example Graphics Program");
 
-	// Set the current drawing color to green.
-	gfx_color(0,200,100);
 
-	// Draw a triangle on the screen.
-	gfx_line(100,100,200,100);
-	gfx_line(200,100,150,150);
-	gfx_line(150,150,100,100);
+	for (i = 0; i < width; i++) {
+		for (j = 0; j < height; j++) {
+			//axis
+			if(i==20 || j == 20){
+				red[i+ j*width ] = 0;
+				green[i + j*width ] = 0;
+				blue[i + j*width ] = 0;
+			}
+			//filling with white
+			else
+			{
+				red[i + j*width] = 255;
+				green[i + j*width] = 255;
+				blue[i + j*width] = 255;
+			}
+		}
+	}
 
-	while(1) {
-		// Wait for the user to press a character.
-		c = gfx_wait();
-
-		// Quit if it is the letter q.
-		if(c=='q') break;
+	//graphic
+	for(i=0;i<256;i++){
+		for(j=0; j < points[i]; j++){
+			red[21+i + (21+j/division_factor)*width] = color_r;
+			green[21+i + (21+j/division_factor)*width] = color_g;
+			blue[21+i + (21+j/division_factor)*width] = color_b;
+		}
+		
 	}
 }
 
-void makeHistogram(image_desc * img){
+
+void makeHistogram(image_desc * img, targa_header * head, char * name){
+	image_desc * hist_desc = (image_desc *) malloc (sizeof(image_desc));
+	targa_header hist_header = *head;
 	int r[256];
 	int g[256];
 	int b[256];
@@ -110,23 +132,64 @@ void makeHistogram(image_desc * img){
 	uint8_t * red = (uint8_t *) img->pRed;
 	uint8_t * green = (uint8_t *) img->pGreen;
 	uint8_t * blue = (uint8_t *) img->pBlue;
+	int width = (int) img->width;
+	int height = (int) img->height;
+	char red_hist[300];
+	char green_hist[300];
+	char blue_hist[300];
+	char y_hist[300];
 
+	//Histogram points
 	//columns
-	for(i = 0; i < img->width; i++){
+	for(i = 0; i < 256; i++){
 		r[i] = 0;
 		g[i] = 0;
 		b[i] = 0;
 		y[i] = 0;
-		//pixels
-		for(j = 0; j < img->height; j++){
-			r[i] += *(red + i*img->width + j);
-			g[i] += *(green + i*img->width + j);
-			b[i] += *(blue + i*img->width + j);
-			y[i] += (*(red + i*img->width + j) + *(green + i*img->width + j) + *(blue + i*img->width + j)) / 3;
-		}
 	}
 
-	drawHistogram(r,g,b,y);
+	for(i = 0; i < height*width ; i++, red++, green++, blue++){
+		y[(*red)/3+(*green)/3+(*blue)/3]+=1;
+		r[*red]+=1;
+		g[*green]+=1;
+		b[*blue]+=1;
+	}
+
+	width = 296;
+	height = 300;
+	hist_header.width = width;
+	hist_header.height = height;
+	hist_desc->width = width;
+	hist_desc->height = height;
+	
+	hist_desc->pRed   = malloc(sizeof(uint8_t)*hist_desc->width*hist_desc->height);
+	hist_desc->pGreen = malloc(sizeof(uint8_t)*hist_desc->width*hist_desc->height);
+	hist_desc->pBlue  = malloc(sizeof(uint8_t)*hist_desc->width*hist_desc->height);
+
+	red = (uint8_t *) hist_desc->pRed;
+	green = (uint8_t *) hist_desc->pGreen;
+	blue = (uint8_t *) hist_desc->pBlue;
+
+	strcpy(red_hist,"histograms/red_");
+	strcat(red_hist,name);
+
+	strcpy(green_hist,"histograms/green_");
+	strcat(green_hist,name);
+
+	strcpy(blue_hist,"histograms/blue_");
+	strcat(blue_hist,name);
+
+	strcpy(y_hist,"histograms/y_");
+	strcat(y_hist,name);
+
+	fillColors(width,height,red,green,blue,r,255,0,0);
+	writeImage(*hist_desc,hist_header,red_hist);
+	fillColors(width,height,red,green,blue,g,0,255,0);
+	writeImage(*hist_desc,hist_header,green_hist);
+	fillColors(width,height,red,green,blue,b,0,0,255);
+	writeImage(*hist_desc,hist_header,blue_hist);
+	fillColors(width,height,red,green,blue,y,70,70,70);
+	writeImage(*hist_desc,hist_header,y_hist);
 }
 
 
@@ -145,13 +208,13 @@ void readParameters(char * msg){
 
 	#ifdef DEBUG
 		for(i = 0; i < size; i++){
-			printf("READING: %s \n",commands[i]);
+			printf("READING %d:  %s \n",i,commands[i]);
 		}
 	#endif
 
 	// HISTOGRAM
 	if(caseless_strcmp(commands[0],"histogram") == 0){
-
+printf("HISTOGRAM");
 		for(i = 1; i < size; i++){
 
 			//Pick color
@@ -173,9 +236,8 @@ void readParameters(char * msg){
 					targa_header * header = (targa_header *) malloc (sizeof(targa_header));
 					image_desc * img = (image_desc *) malloc (sizeof(image_desc));
 					printf("File %s is open. \n",name);
-					readImage(img,header,fp);
-					writeImage(*img,*header,"test.tga");
-					makeHistogram(img);
+					readImage(img,header,name);
+					makeHistogram(img,header,commands[i+1]);
 					fclose(fp);
 					free(header);
 					free(img);
@@ -197,7 +259,7 @@ void readParameters(char * msg){
 		}
 
 		#ifdef DEBUG
-			//printf("HISTOGRAM INFO: file: %s color: %d\n", name, color);
+			printf("HISTOGRAM INFO: file: %s color: %d\n", name, color);
 		#endif
 		
 	}
