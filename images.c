@@ -120,6 +120,67 @@ void fillColors(int width, int height, uint8_t * red, uint8_t * green, uint8_t *
 	}
 }
 
+void fillColors2(int width, int height, uint8_t * red, uint8_t * green, uint8_t * blue, int * r, int * g, int * b){
+	int i, j;
+	int division_factor;
+	int highest_number = 0;
+
+
+	//resizing
+	for(i=0;i<256;i++){
+		if(r[i]>=highest_number){
+			highest_number = r[i];
+		}
+		if(g[i]>=highest_number){
+			highest_number = g[i];
+		}
+		if(b[i]>=highest_number){
+			highest_number = b[i];
+		}
+	}
+
+	division_factor = highest_number/(height-30);
+
+
+
+	for (i = 0; i < width; i++) {
+		for (j = 0; j < height; j++) {
+			//axis
+			if(i==20 || j == 20){
+				red[i+ j*width ] = 0;
+				green[i + j*width ] = 0;
+				blue[i + j*width ] = 0;
+			}
+			//filling with white
+			else
+			{
+				red[i + j*width] = 255;
+				green[i + j*width] = 255;
+				blue[i + j*width] = 255;
+			}
+		}
+	}
+
+	//graphic
+	for(i=0;i<256;i++){
+		for(j=0; j < r[i]; j++){
+			red[21+i + (21+j/division_factor)*width] += 100;
+			green[21+i + (21+j/division_factor)*width] += 200;
+			blue[21+i + (21+j/division_factor)*width] += 200;
+		}
+		for(j=0; j < g[i]; j++){
+			red[21+i + (21+j/division_factor)*width] += 200;
+			green[21+i + (21+j/division_factor)*width] += 100;
+			blue[21+i + (21+j/division_factor)*width] += 200;
+		}
+		for(j=0; j < b[i]; j++){
+			red[21+i + (21+j/division_factor)*width] += 200;
+			green[21+i + (21+j/division_factor)*width] += 200;
+			blue[21+i + (21+j/division_factor)*width] += 100;
+		}
+
+	}
+}
 
 void makeHistogram(image_desc * img, targa_header * head, char * name){
 	image_desc * hist_desc = (image_desc *) malloc (sizeof(image_desc));
@@ -138,6 +199,7 @@ void makeHistogram(image_desc * img, targa_header * head, char * name){
 	char green_hist[300];
 	char blue_hist[300];
 	char y_hist[300];
+	char rgb_hist[300];
 
 	//Histogram points
 	//columns
@@ -182,6 +244,9 @@ void makeHistogram(image_desc * img, targa_header * head, char * name){
 	strcpy(y_hist,"histograms/y_");
 	strcat(y_hist,name);
 
+	strcpy(rgb_hist,"histograms/rgb_");
+	strcat(rgb_hist,name);
+
 	fillColors(width,height,red,green,blue,r,255,0,0);
 	writeImage(*hist_desc,hist_header,red_hist);
 	fillColors(width,height,red,green,blue,g,0,255,0);
@@ -190,6 +255,9 @@ void makeHistogram(image_desc * img, targa_header * head, char * name){
 	writeImage(*hist_desc,hist_header,blue_hist);
 	fillColors(width,height,red,green,blue,y,70,70,70);
 	writeImage(*hist_desc,hist_header,y_hist);
+
+	fillColors2(width,height,red,green,blue,r,g,b);
+	writeImage(*hist_desc,hist_header,rgb_hist);
 }
 
 
