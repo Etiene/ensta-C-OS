@@ -16,7 +16,7 @@
 
 void read_header(int sock, char * username);
 void print_msg(char *talker, char * chat);
-void send_img(int socket);
+void send_img(int socket,char * path);
 void transforme_image(char * argtab[]);
 
 
@@ -123,7 +123,7 @@ int main(int argc, char * argv[])
 
 		if (startswith("envoie",chat)) {
 			printf("Je vais t'envoyer une image\n");
-			send_img(socket_service);
+			send_img(socket_service,"");
 		}	
 		else if (startswith("info", chat)) {
 			do
@@ -143,7 +143,7 @@ int main(int argc, char * argv[])
 }
 
 
-void send_img(int socket_service) {
+void send_img(int socket_service, char * path) {
   int written_size;
   int fd = open("./img_src/ensta.tga", O_RDONLY);
   long img_size = lseek(fd, 0L, SEEK_END);
