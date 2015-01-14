@@ -138,6 +138,7 @@ int main(int argc, char * argv[])
 			printf("Rien de special\n");
 		}
 
+    i=0;
     do
     {
       cs=error[i];

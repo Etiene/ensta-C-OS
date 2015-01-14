@@ -97,6 +97,7 @@ int main(int argc, char * argv[])
   while (c!=EOF) {
   	printf("Dites moi quelque chose\n");
   	i = 0;
+    cs = 'X';
     
   	// Le pere produit les requetes sur sock_talk
   	do
@@ -120,7 +121,7 @@ int main(int argc, char * argv[])
   	  printf("Je transforme une image : %s\n", msgclient);
   	}
 
-    if (startswith("histogram", msgclient)) {
+    if (startswith("histogram", msgclient) && cs=='X') {
       do
       {
         read(sock_talk, &cs, 1);
@@ -133,7 +134,7 @@ int main(int argc, char * argv[])
         }
         
       }while (cs!='\0');
-      
+
     }
   }	
 

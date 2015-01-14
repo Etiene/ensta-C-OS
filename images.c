@@ -529,7 +529,7 @@ void readParameters(char * msg, char * responseImagePath, char  * responseMsg){
 
 			fp = fopen(name,"rb");
 			if(fp == NULL){
-				printf("file path: a%sa\n",name);
+				printf("file path: .%s.\n",name);
 				 strcpy(responseMsg,"Could not open file.\n");
 			}else{
 				targa_header * header = (targa_header *) malloc (sizeof(targa_header));
