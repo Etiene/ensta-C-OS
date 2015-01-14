@@ -537,6 +537,8 @@ void readParameters(char * msg){
 	char * name;
 	int color = DEFAULTCOLOR;
 	int name_ = 0;
+	int readcolor = 0, readsize = 0, readimage = 0, readfolder = 0;
+
 
 
 	size = str_split(msg,commands);
@@ -553,64 +555,70 @@ void readParameters(char * msg){
 
 			//Pick color
 			if(caseless_strcmp(commands[i],"-c") == 0 && commands[i+1] != NULL)
-				color = readColor(commands[i+1]);
+				readcolor = 1;
 
-			// size?
-
+			// size
 			if(caseless_strcmp(commands[i],"-s") == 0 && commands[i+1] != NULL)
-				image_size = atoi(commands[i+1]);
+				readsize = 1;
 				
 			//Open image file
-			else if(caseless_strcmp(commands[i],"-i") == 0 && commands[i+1] != NULL){
-				FILE * fp;
-				printf("bateu mas nao era pra bater");
-				
-				name = (char *) malloc(strlen(IMGPATH));
-				name_ = 1;
-				strcat(name,IMGPATH);
-				strcat(name,commands[i+1]);
-
-				fp = fopen(name,"rb");
-				if(fp == NULL){
-					printf("Could not open file %s. \n",name);
-				}else{
-					targa_header * header = (targa_header *) malloc (sizeof(targa_header));
-					image_desc * img = (image_desc *) malloc (sizeof(image_desc));
-					printf("File %s is open. \n",name);
-					readImage(img,header,name);
-					makeHistogram(img,header,commands[i+1]);
-					fclose(fp);
-					free(header);
-					free(img);
-				}
-				
-			}
+			else if(caseless_strcmp(commands[i],"-i") == 0 && commands[i+1] != NULL)
+				readimage = 1;
 
 			//Open directory
-			else if(caseless_strcmp(commands[i],"-f") == 0 && commands[i+1] != NULL){
-				DIR* FD;
-				//TODO
-				name_ = 1;
-				if (NULL == (FD = opendir (commands[i+1]))) {
-					printf("Could not open dir %s. \n",commands[i+1]);
-				}else{
-					makeFolderHistogram(FD,commands[i+1],image_size);
-				}
-			}
+			else if(caseless_strcmp(commands[i],"-f") == 0 && commands[i+1] != NULL)
+				readfolder;
+			
 
 		}
 
-		//TODO DEBUG
+		if(readcolor)
+			color = readColor(commands[i+1]);
+
+		if(readsize)
+			image_size = atoi(commands[i+1]);
+
+		if(readimage){
+			FILE * fp;
+				
+			name = (char *) malloc(strlen(IMGPATH));
+			name_ = 1;
+			strcat(name,IMGPATH);
+			strcat(name,commands[i+1]);
+
+			fp = fopen(name,"rb");
+			if(fp == NULL){
+				printf("Could not open file %s. \n",name);
+			}else{
+				targa_header * header = (targa_header *) malloc (sizeof(targa_header));
+				image_desc * img = (image_desc *) malloc (sizeof(image_desc));
+				printf("File %s is open. \n",name);
+				readImage(img,header,name);
+				makeHistogram(img,header,commands[i+1]);
+				fclose(fp);
+				free(header);
+				free(img);
+			}
+		}
+
+		if(readfolder){
+			DIR* FD;
+				
+			name_ = 1;
+			if (NULL == (FD = opendir (commands[i+1]))) {
+				printf("Could not open dir %s. \n",commands[i+1]);
+			}else{
+				makeFolderHistogram(FD,commands[i+1],image_size);
+			}
+		}
+
+		// DEBUG
 		//Does not have file name
 		if(!name_){
 			printf("You must provide a file name. Type \"info\" for help.\n");
 		}
 		
 	}
-	
-	//OTHER COMMANDS
-
-	//TODO
 }
 
 
