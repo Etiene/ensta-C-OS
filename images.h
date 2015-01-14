@@ -58,6 +58,7 @@ typedef struct image_desc_
 				r 	: shows red histogram 
 				g	: shows green histogram 
 				b	: shows blue histogram 
+				rgb : shows rate of color in bars
 			Default value:
 				rgb
 
