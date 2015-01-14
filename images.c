@@ -551,7 +551,7 @@ void readParameters(char * msg, char * responseImagePath, char  * responseMsg){
 		}
 	#endif
 
-	strcpy(responseMsg,"ok\n");
+	
 
 	// reads parameters
 	if(caseless_strcmp(commands[0],"histogram") == 0){
@@ -632,6 +632,11 @@ void readParameters(char * msg, char * responseImagePath, char  * responseMsg){
 			}else{
 				printf("image_size %s %d",readsize,image_size);
 				makeFolderHistogram(FD,readfolder,image_size);
+				if(strcmp(readcolor,""))
+					strcat(responseImagePath,"histograms/folder_color.tga");
+				else
+					strcat(responseImagePath,"histograms/folder_size.tga");
+
 			}
 		}
 
@@ -639,6 +644,9 @@ void readParameters(char * msg, char * responseImagePath, char  * responseMsg){
 		if(!name_){
 			strcpy(responseMsg,"You must provide a file name. Type \"info\" for help.\n");
 		}
+
+		if(!strlen(responseMsg))
+			strcpy(responseMsg,"0");
 		
 	}
 

@@ -124,11 +124,16 @@ int main(int argc, char * argv[])
       do
       {
         read(sock_talk, &cs, 1);
-        putchar(cs);
+        if(cs=='0'){
+         read(sock, &img_size, sizeof(long));
+          printf("Taille de l'image a recevoir : %ld\n", img_size);
+          recv_img(sock, img_size);
+        }else{
+          putchar(cs);
+        }
+        
       }while (cs!='\0');
-      read(sock, &img_size, sizeof(long));
-      printf("Taille de l'image a recevoir : %ld\n", img_size);
-      recv_img(sock, img_size);
+      
     }
   }	
 

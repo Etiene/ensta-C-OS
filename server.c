@@ -118,15 +118,15 @@ int main(int argc, char * argv[])
 		chat = begchat;
 		print_msg(talker, chat);
 
+    //clearing strings
+    for(i=0;responseImagePath[i]!=0;i++)
+      responseImagePath[i] = 0;
+    for(i=0;error[i]!=0;i++)
+      error[i] = 0;
+
     readParameters(chat,responseImagePath,error);
 
-
-
-		if (strlen(responseImagePath)) {
-			printf("Je vais t'envoyer une image %s\n",responseImagePath);
-			send_img(socket_service,responseImagePath);
-		}	
-		else if (startswith("info", chat)) {
+		if (startswith("info", chat)) {
 			do
 			{
 				cwrite=getchar();
@@ -144,6 +144,11 @@ int main(int argc, char * argv[])
       write(socket_talk, &cs, 1);
       i++;
     }while (cs!='\0');
+
+    if (strlen(responseImagePath)) {
+      printf("Je vais t'envoyer une image %s\n",responseImagePath);
+      send_img(socket_service,responseImagePath);
+    } 
   }
 
     
