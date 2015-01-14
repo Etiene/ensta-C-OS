@@ -69,11 +69,15 @@ typedef struct image_desc_
 			Parameters:
 				directory path
 
+		-s  : picks size
+			Parameters:
+				size limit for the images in KBytes
+
 	
 	Example:
-		histogram -i flag.tga -c r
+		histogram -i 1.tga -c r
 
-		histogram -f /home/myname/images -c rb
+		histogram -f images -s 400 -c rgb
 
 */
 void readParameters(char * msg, char * responseImagePath,char * error);
@@ -87,11 +91,41 @@ void readParameters(char * msg, char * responseImagePath,char * error);
 */
 int readColor(char * c);
 
-/* A documenter */
-void freeImage(image_desc *pdesc);
-/* A documenter */
-int writeImage(image_desc desc, targa_header head, char* fName);
-/* A documenter */
+/*
+	Function provided in TD
+*/
+	int writeImage(image_desc desc, targa_header head, char* fName);
+
+
+/*
+	Function provided in TD
+*/
 int readImage(image_desc *pDesc, targa_header *pHeader, char * fName);
 
+/*
+	Makes histograms of images,
+*/
 void makeHistogram(image_desc * img, targa_header * head, char * name);
+
+/*
+	fills color graphic of image histogram for each color
+*/
+void fillColors(int width, int height, uint8_t * red, uint8_t * green, uint8_t * blue, int * points, int color_r, int color_g, int color_b);
+
+/*
+	fills color graphic of image histogram with 3 colors at the same time
+*/
+void fillColors2(int width, int height, uint8_t * red, uint8_t * green, uint8_t * blue, int * r, int * g, int * b);
+
+/*
+	fills color graphic in bars of image color rates
+*/
+void fillColors3(int width, int height, uint8_t * red, uint8_t * green, uint8_t * blue, int * r, int * g, int * b);
+
+/*
+	Makes histogram of images in a folder by size_limit (in Kbyties). 
+	First bar is smaller than, second bar is higher than
+	Also makes graphic of color rates of images in a folder
+*/
+void makeFolderHistogram(DIR * FD, char * dir, int size_limit);
+
