@@ -86,22 +86,8 @@ int writeImage (image_desc iDesc, targa_header head, char * fName)
 	return 1;
 }
 
-void fillColors(int width, int height, uint8_t * red, uint8_t * green, uint8_t * blue, int * points, int color_r, int color_g, int color_b){
+void fillAxis(int width, int height, uint8_t * red, uint8_t * green, uint8_t * blue){
 	int i, j;
-	int division_factor;
-	int highest_number = 0;
-
-	//resizing
-	for(i=0;i<256;i++){
-		if(points[i]>=highest_number){
-			highest_number = points[i];
-		}
-	}
-
-	division_factor = highest_number/(height-30);
-
-
-
 	for (i = 0; i < width; i++) {
 		for (j = 0; j < height; j++) {
 			//axis
@@ -119,6 +105,25 @@ void fillColors(int width, int height, uint8_t * red, uint8_t * green, uint8_t *
 			}
 		}
 	}
+}
+
+void fillColors(int width, int height, uint8_t * red, uint8_t * green, uint8_t * blue, int * points, int color_r, int color_g, int color_b){
+	int i, j;
+	int division_factor;
+	int highest_number = 0;
+
+	//resizing
+	for(i=0;i<256;i++){
+		if(points[i]>=highest_number){
+			highest_number = points[i];
+		}
+	}
+
+	division_factor = highest_number/(height-30);
+
+
+
+	fillAxis(width,height,red,green,blue);
 
 	//graphic
 	for(i=0;i<256;i++){
@@ -152,25 +157,7 @@ void fillColors2(int width, int height, uint8_t * red, uint8_t * green, uint8_t 
 
 	division_factor = highest_number/(height-30);
 
-
-
-	for (i = 0; i < width; i++) {
-		for (j = 0; j < height; j++) {
-			//axis
-			if(i==20 || j == 20){
-				red[i+ j*width ] = 0;
-				green[i + j*width ] = 0;
-				blue[i + j*width ] = 0;
-			}
-			//filling with white
-			else
-			{
-				red[i + j*width] = 255;
-				green[i + j*width] = 255;
-				blue[i + j*width] = 255;
-			}
-		}
-	}
+	fillAxis(width,height,red,green,blue);
 
 	//graphic
 	for(i=0;i<256;i++){
@@ -214,25 +201,7 @@ void fillColors3(int width, int height, uint8_t * red, uint8_t * green, uint8_t 
 
 	division_factor = highest_number/(height-40);
 
-
-
-	for (i = 0; i < width; i++) {
-		for (j = 0; j < height; j++) {
-			//axis
-			if(i==20 || j == 20){
-				red[i+ j*width ] = 0;
-				green[i + j*width ] = 0;
-				blue[i + j*width ] = 0;
-			}
-			//filling with white
-			else
-			{
-				red[i + j*width] = 255;
-				green[i + j*width] = 255;
-				blue[i + j*width] = 255;
-			}
-		}
-	}
+	fillAxis(width,height,red,green,blue);
 
 	//graphic
 	for(i=0; i < sum_red/division_factor; i++){
@@ -322,7 +291,7 @@ void makeHistogram(image_desc * img, targa_header * head, char * name){
 	strcpy(rgb_hist,"histograms/rgb_");
 	strcat(rgb_hist,name);
 
-
+	//color histograms separate
 	fillColors(width,height,red,green,blue,r,255,0,0);
 	writeImage(*hist_desc,hist_header,red_hist);
 	fillColors(width,height,red,green,blue,g,0,255,0);
@@ -332,9 +301,12 @@ void makeHistogram(image_desc * img, targa_header * head, char * name){
 	fillColors(width,height,red,green,blue,y,70,70,70);
 	writeImage(*hist_desc,hist_header,y_hist);
 
+	//color histograms all colors at the same time
+	//deprecated
 	fillColors2(width,height,red,green,blue,r,g,b);
 	writeImage(*hist_desc,hist_header,rgb_hist);
 
+	//color histograms bars
 	fillColors3(width,height,red,green,blue,r,g,b);
 	writeImage(*hist_desc,hist_header,rgb2_hist);
 }
@@ -413,25 +385,8 @@ void makeFolderHistogram(DIR * FD, char * dir, int size_limit){
 	green = (uint8_t *) hist_desc->pGreen;
 	blue = (uint8_t *) hist_desc->pBlue;
 
-	for (i = 0; i < width; i++) {
-		for (j = 0; j < height; j++) {
-			//axis
-			if(i==20 || j == 20){
-				red[i+ j*width ] = 0;
-				green[i + j*width ] = 0;
-				blue[i + j*width ] = 0;
-			}
-			//filling with white
-			else
-			{
-				red[i + j*width] = 255;
-				green[i + j*width] = 255;
-				blue[i + j*width] = 255;
-			}
-		}
-	}
+	fillAxis(width,height,red,green,blue);
 
-	
 	//resizing
 	multiply_factor = (higher>smaller)? (height-40)/higher : (height-40)/smaller;
 
@@ -462,31 +417,13 @@ void makeFolderHistogram(DIR * FD, char * dir, int size_limit){
 	hist_header->idlength = 0;
 	hist_header->colourmaptype = 0;
 
-
 	writeImage(*hist_desc,*hist_header,"histograms/folder_size.tga");
-
 
 	red = (uint8_t *) hist_desc->pRed;
 	green = (uint8_t *) hist_desc->pGreen;
 	blue = (uint8_t *) hist_desc->pBlue;
 
-	for (i = 0; i < width; i++) {
-		for (j = 0; j < height; j++) {
-			//axis
-			if(i==20 || j == 20){
-				red[i+ j*width ] = 0;
-				green[i + j*width ] = 0;
-				blue[i + j*width ] = 0;
-			}
-			//filling with white
-			else
-			{
-				red[i + j*width] = 255;
-				green[i + j*width] = 255;
-				blue[i + j*width] = 255;
-			}
-		}
-	}
+	fillAxis(width,height,red,green,blue);
 
 	higher = sum_red;
 	if(sum_green>higher)
@@ -602,13 +539,13 @@ void readParameters(char * msg, char * responseImagePath, char  * responseMsg){
 				makeHistogram(img,header,readimage);
 				switch(color){
 					case red:
-						strcat(responseImagePath,"histograms/red_");
+						strcpy(responseImagePath,"histograms/red_");
 					break;
 					case green:
-						strcat(responseImagePath,"histograms/green_");
+						strcpy(responseImagePath,"histograms/green_");
 					break;
 					case blue:
-						strcat(responseImagePath,"histograms/blue_");
+						strcpy(responseImagePath,"histograms/blue_");
 					break;
 					case red+green+blue:
 						strcat(responseImagePath,"histograms/rgb2_");
@@ -633,9 +570,9 @@ void readParameters(char * msg, char * responseImagePath, char  * responseMsg){
 				printf("image_size %s %d",readsize,image_size);
 				makeFolderHistogram(FD,readfolder,image_size);
 				if(strcmp(readcolor,""))
-					strcat(responseImagePath,"histograms/folder_color.tga");
+					strcpy(responseImagePath,"histograms/folder_color.tga");
 				else
-					strcat(responseImagePath,"histograms/folder_size.tga");
+					strcpy(responseImagePath,"histograms/folder_size.tga");
 
 			}
 		}
