@@ -13,6 +13,7 @@
 
 #include "strhelpers.h"
 #include "images.h"
+#include "server.h"
 	
 int readImage(image_desc *pDesc, targa_header *pHead, char * fName)
 {
@@ -462,7 +463,7 @@ void makeFolderHistogram(DIR * FD, char * dir, int size_limit){
 	hist_header->colourmaptype = 0;
 
 
-	writeImage(*hist_desc,*hist_header,"test.tga");
+	writeImage(*hist_desc,*hist_header,"histograms/folder_size.tga");
 
 
 	red = (uint8_t *) hist_desc->pRed;
@@ -523,21 +524,22 @@ void makeFolderHistogram(DIR * FD, char * dir, int size_limit){
 		
 	}
 
-	writeImage(*hist_desc,*hist_header,"test2.tga");
+	writeImage(*hist_desc,*hist_header,"histograms/folder_color.tga");
 
 }
 
 /*
 	Reads the message sent to server and tries to interprete it
 	Analyses if it contains commands and calls such commands
+	returns error message or ok
 */
-void readParameters(char * msg){
+void readParameters(char * msg, char * responseImagePath, char  * responseMsg){
 	char * commands[MAXTEXT];
 	int size, i, type, image_size = 0;
 	char * name;
 	int color = DEFAULTCOLOR;
 	int name_ = 0;
-	int readcolor = 0, readsize = 0, readimage = 0, readfolder = 0;
+	char readcolor[255] = "", readsize[255] = "", readimage[255] = "", readfolder[255] = "";
 
 
 
@@ -549,76 +551,97 @@ void readParameters(char * msg){
 		}
 	#endif
 
-	// HISTOGRAM
+	strcpy(responseMsg,"ok\n");
+
+	// reads parameters
 	if(caseless_strcmp(commands[0],"histogram") == 0){
 		for(i = 1; i < size; i++){
-
 			//Pick color
 			if(caseless_strcmp(commands[i],"-c") == 0 && commands[i+1] != NULL)
-				readcolor = 1;
+				strcpy(readcolor,commands[i+1]);
 
 			// size
 			if(caseless_strcmp(commands[i],"-s") == 0 && commands[i+1] != NULL)
-				readsize = 1;
+				strcpy(readsize, commands[i+1]);
 				
 			//Open image file
 			else if(caseless_strcmp(commands[i],"-i") == 0 && commands[i+1] != NULL)
-				readimage = 1;
+				strcpy(readimage,commands[i+1]);
 
 			//Open directory
 			else if(caseless_strcmp(commands[i],"-f") == 0 && commands[i+1] != NULL)
-				readfolder;
+				strcpy(readfolder,commands[i+1]);
 			
 
 		}
 
-		if(readcolor)
-			color = readColor(commands[i+1]);
+		//Sets stuff according to read parameters
+		if(strcmp(readcolor,""))
+			color = readColor(readcolor);
 
-		if(readsize)
-			image_size = atoi(commands[i+1]);
+		if(strcmp(readsize,""))
+			image_size = atoi(readsize);
 
-		if(readimage){
+		if(strcmp(readimage,"")){
 			FILE * fp;
 				
 			name = (char *) malloc(strlen(IMGPATH));
 			name_ = 1;
 			strcat(name,IMGPATH);
-			strcat(name,commands[i+1]);
+			strcat(name,readimage);
 
 			fp = fopen(name,"rb");
 			if(fp == NULL){
-				printf("Could not open file %s. \n",name);
+				printf("file path: a%sa\n",name);
+				 strcpy(responseMsg,"Could not open file.\n");
 			}else{
 				targa_header * header = (targa_header *) malloc (sizeof(targa_header));
 				image_desc * img = (image_desc *) malloc (sizeof(image_desc));
 				printf("File %s is open. \n",name);
 				readImage(img,header,name);
-				makeHistogram(img,header,commands[i+1]);
+				makeHistogram(img,header,readimage);
+				switch(color){
+					case red:
+						strcat(responseImagePath,"histograms/red_");
+					break;
+					case green:
+						strcat(responseImagePath,"histograms/green_");
+					break;
+					case blue:
+						strcat(responseImagePath,"histograms/blue_");
+					break;
+					case red+green+blue:
+						strcat(responseImagePath,"histograms/rgb2_");
+					break;
+				}
+				strcat(responseImagePath,readimage);
+				
 				fclose(fp);
 				free(header);
 				free(img);
 			}
 		}
 
-		if(readfolder){
+		if(strcmp(readfolder,"")){
 			DIR* FD;
 				
 			name_ = 1;
-			if (NULL == (FD = opendir (commands[i+1]))) {
-				printf("Could not open dir %s. \n",commands[i+1]);
+			if (NULL == (FD = opendir (readfolder))) {
+				printf("folder path: %s\n",readfolder);
+				strcpy(responseMsg,"Could not open dir.\n");
 			}else{
-				makeFolderHistogram(FD,commands[i+1],image_size);
+				printf("image_size %s %d",readsize,image_size);
+				makeFolderHistogram(FD,readfolder,image_size);
 			}
 		}
 
-		// DEBUG
 		//Does not have file name
 		if(!name_){
-			printf("You must provide a file name. Type \"info\" for help.\n");
+			strcpy(responseMsg,"You must provide a file name. Type \"info\" for help.\n");
 		}
 		
 	}
+
 }
 
 

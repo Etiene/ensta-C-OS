@@ -28,6 +28,7 @@ int main(int argc, char * argv[])
   struct hostent * hote;
   struct sockaddr_in adr;
 
+
   // On verifie qu'il y a au moins 2 options donnees au lancement du client
   if (argc!=4)
   {
@@ -85,6 +86,7 @@ int main(int argc, char * argv[])
   printf("Connexion au talk etablie\n");
 
   char c;
+  char cs;
   char *chat =  malloc(MAXTEXT);
   char *begchat = chat;
   long img_size ;
@@ -118,7 +120,19 @@ int main(int argc, char * argv[])
   	  printf("Je transforme une image : %s\n", msgclient);
   	}
 
+    if (startswith("histogram", msgclient)) {
+      do
+      {
+        read(sock_talk, &cs, 1);
+        putchar(cs);
+      }while (cs!='\0');
+      read(sock, &img_size, sizeof(long));
+      printf("Taille de l'image a recevoir : %ld\n", img_size);
+      recv_img(sock, img_size);
+    }
   }	
+
+  
   close(sock);
   close(sock_talk);	   
   return 0;
@@ -139,7 +153,8 @@ void recv_img(int sock, long img_size) {
 
   buffer = startbuffer;
   printf("Copie terminee : lu %d octets , \n", total);
-  int fd = open("testsortie.tga", O_CREAT|O_RDWR);
+  //Something is wrong with permissions, gotta chmod 0777 received.tga right after!
+  int fd = open("received.tga", O_CREAT|O_RDWR);
   write(fd, buffer, img_size); 
   close(fd);
   free(buffer);

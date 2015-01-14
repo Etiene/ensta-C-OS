@@ -23,7 +23,11 @@ int main(int argc, char * argv[])
   char nom[30];
   char commandeWrite[80];
   struct sockaddr_in adr, adresse;
+  char responseImagePath[500] = "";
+  char error[255];
+  int i = 0;
   socklen_t lgadresse=0;
+
   if (argc!=2)
   {
     fprintf(stderr,"Usage : %s port-number\n", argv[0]);
@@ -93,6 +97,7 @@ int main(int argc, char * argv[])
 
 
   char c = 'X';
+  char cs = 'X';
   char *talker = (char*)malloc(MAXNAME);
   char *chat =  (char*)malloc(MAXTEXT);
   char *begchat;
@@ -113,11 +118,13 @@ int main(int argc, char * argv[])
 		chat = begchat;
 		print_msg(talker, chat);
 
-    readParameters(chat);
+    readParameters(chat,responseImagePath,error);
 
-		if (startswith("envoie",chat)) {
-			printf("Je vais t'envoyer une image\n");
-			send_img(socket_service,"");
+
+
+		if (strlen(responseImagePath)) {
+			printf("Je vais t'envoyer une image %s\n",responseImagePath);
+			send_img(socket_service,responseImagePath);
 		}	
 		else if (startswith("info", chat)) {
 			do
@@ -130,7 +137,17 @@ int main(int argc, char * argv[])
 		else {
 			printf("Rien de special\n");
 		}
+
+    do
+    {
+      cs=error[i];
+      write(socket_talk, &cs, 1);
+      i++;
+    }while (cs!='\0');
   }
+
+    
+
   close(socket_service);
   close(socket_talk);	  
   return 0;
@@ -139,7 +156,7 @@ int main(int argc, char * argv[])
 
 void send_img(int socket_service, char * path) {
   int written_size;
-  int fd = open("./img_src/ensta.tga", O_RDONLY);
+  int fd = open(path, O_RDONLY);
   long img_size = lseek(fd, 0L, SEEK_END);
   lseek(fd, 0L, SEEK_SET);
   char *buffer = malloc(img_size);

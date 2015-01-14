@@ -8,6 +8,7 @@
 
 int main(int argc, char * argv[]){
 	char msg[300];
+	char msg3[300];
 	int i;
 	strcpy(msg,"");
 	for(i=1;i<argc;i++){
@@ -16,7 +17,7 @@ int main(int argc, char * argv[]){
 	}	
 
 	printf("%s\n",msg);
-	readParameters(msg);
+	readParameters(msg,NULL,msg3);
 
 	return 0;
 }

@@ -76,7 +76,7 @@ typedef struct image_desc_
 		histogram -f /home/myname/images -c rb
 
 */
-void readParameters(char * msg);
+void readParameters(char * msg, char * responseImagePath,char * error);
 
 
 /*
